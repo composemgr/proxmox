@@ -1,0 +1,260 @@
+<<<<<<< HEAD
+# Proxmox - A full Proxmox VE cluster in a Docker container
+# Access URL: http://172.17.0.1:64943
+
+name: proxmox
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '3'
+
+services:
+=======
+# nginx proxy address - http://172.17.0.1:8006
+
+name: proxmox
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  # First node
+  pve-1:
+    image: ghcr.io/longqt-sea/proxmox-ve
+    container_name: pve-1
+    hostname: pve-1
+    privileged: true
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      - TZ=${TZ:-America/New_York}
+    cgroup: host
+    shm_size: 1g
+    networks:
+      dual_stack:
+        ipv4_address: 10.0.99.1
+        ipv6_address: fd00::1
+
+    # Port mapping only required for Docker Desktop or LAN access from other machines.
+    ports:
+      - "172.17.0.1:2222:22"
+      - "172.17.0.1:3128:3128"
+      - "172.17.0.1:8006:8006"   # First node container port 8006 maps to host port 8006
+
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup               # Required for systemd init
+      - /usr/lib/modules:/usr/lib/modules:ro        # Required for loading kernel modules
+      - /sys/kernel/security:/sys/kernel/security   # Optional, needed for LXC
+      - /var/lib/vz/dump:/var/lib/vz/dump           # Shared storage for VM/LXC backups
+      - /var/lib/vz/template/iso:/var/lib/vz/template/iso # Shared storage for ISO files
+
+
+  # Second node
+  pve-2:
+    image: ghcr.io/longqt-sea/proxmox-ve
+    container_name: pve-2
+    hostname: pve-2
+    privileged: true
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      - TZ=${TZ:-America/New_York}
+    cgroup: host
+    shm_size: 1g
+    networks:
+      dual_stack:
+        ipv4_address: 10.0.99.2
+        ipv6_address: fd00::2
+
+    # Port mapping only required for Docker Desktop or LAN access from other machines.
+    ports:
+      - "172.17.0.1:2223:22"
+      - "172.17.0.1:3129:3128"
+      - "172.17.0.1:8007:8006"   # Second node container port 8006 maps to host port 8007
+
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup               # Required for systemd init
+      - /usr/lib/modules:/usr/lib/modules:ro        # Required for loading kernel modules
+      - /sys/kernel/security:/sys/kernel/security   # Optional, needed for LXC
+      - /var/lib/vz/dump:/var/lib/vz/dump           # Shared storage for VM/LXC backups
+      - /var/lib/vz/template/iso:/var/lib/vz/template/iso # Shared storage for ISO files
+
+
+  # Third node
+  pve-3:
+    image: ghcr.io/longqt-sea/proxmox-ve
+    container_name: pve-3
+    hostname: pve-3
+    privileged: true
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      - TZ=${TZ:-America/New_York}
+    cgroup: host
+    shm_size: 1g
+    networks:
+      dual_stack:
+        ipv4_address: 10.0.99.3
+        ipv6_address: fd00::3
+
+    # Port mapping only required for Docker Desktop or LAN access from other machines.
+    ports:
+      - "172.17.0.1:2224:22"
+      - "172.17.0.1:3130:3128"
+      - "172.17.0.1:8008:8006"   # Third node container port 8006 maps to host port 8008
+
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup               # Required for systemd init
+      - /usr/lib/modules:/usr/lib/modules:ro        # Required for loading kernel modules
+      - /sys/kernel/security:/sys/kernel/security   # Optional, needed for LXC
+      - /var/lib/vz/dump:/var/lib/vz/dump           # Shared storage for VM/LXC backups
+      - /var/lib/vz/template/iso:/var/lib/vz/template/iso # Shared storage for ISO files
+
+
+>>>>>>> bcb1fdf462eb (🗃️ Major updates 🗃️)
+  # Optional: Proxmox Datacenter Manager
+  pdm:
+    image: ghcr.io/longqt-sea/proxmox-datacenter-manager
+    container_name: proxmox-pdm
+    hostname: pdm
+    restart: unless-stopped
+<<<<<<< HEAD
+    pull_policy: always
+=======
+    logging: *default-logging
+    environment:
+      - TZ=${TZ:-America/New_York}
+>>>>>>> bcb1fdf462eb (🗃️ Major updates 🗃️)
+    cgroup: host
+    shm_size: 1g
+    cap_add:
+      - ALL
+    security_opt:
+      - seccomp=unconfined
+      - apparmor=unconfined
+    logging: *default-logging
+    ports:
+      - "172.17.0.1:2222:22"
+      - "172.17.0.1:64943:8443"
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    networks:
+      dual_stack:
+        ipv4_address: 10.0.99.1 
+        ipv6_address: fd00::1
+
+  # First node
+  pve-1:
+    image: ghcr.io/longqt-sea/proxmox-ve
+    container_name: proxmox-pve-1
+    restart: unless-stopped
+    pull_policy: always
+    hostname: pve-1
+    privileged: true
+    cgroup: host
+    shm_size: 1g
+    devices:
+      - /dev/kvm
+      #- /dev/net/tun
+      #- /dev/vhost-net
+    logging: *default-logging
+    ports:
+      - "3128:3128"
+      - "172.17.0.1:2223:22"
+      - "172.17.0.1:8006:8006"                      # First node container port 8006 maps to host port 8006
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup               # Required for systemd init
+      - /usr/lib/modules:/usr/lib/modules:ro        # Required for loading kernel modules
+      - /sys/kernel/security:/sys/kernel/security   # Optional, needed for LXC
+      - /var/lib/vz/dump:/var/lib/vz/dump           # Shared storage for VM/LXC backups
+      - /var/lib/vz/template/iso:/var/lib/vz/template/iso # Shared storage for ISO files
+    tmpfs:
+      - /run
+      - /run/lock
+    networks:
+      dual_stack:
+        ipv4_address: 10.0.99.2
+        ipv6_address: fd00::2
+
+
+  # Second node
+  pve-2:
+    image: ghcr.io/longqt-sea/proxmox-ve
+    container_name: proxmox-pve-2
+    hostname: pve-2
+    restart: unless-stopped
+    pull_policy: always
+    privileged: true
+    cgroup: host
+    shm_size: 1g
+    devices:
+      - /dev/kvm
+      #- /dev/net/tun
+      #- /dev/vhost-net
+    logging: *default-logging
+    ports:
+      - "3129:3128"
+      - "172.17.0.1:2224:22"
+      - "172.17.0.1:8007:8006"                      # Second node container port 8006 maps to host port 8007
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup               # Required for systemd init
+      - /usr/lib/modules:/usr/lib/modules:ro        # Required for loading kernel modules
+      - /sys/kernel/security:/sys/kernel/security   # Optional, needed for LXC
+      - /var/lib/vz/dump:/var/lib/vz/dump           # Shared storage for VM/LXC backups
+      - /var/lib/vz/template/iso:/var/lib/vz/template/iso # Shared storage for ISO files
+    tmpfs:
+      - /run
+      - /run/lock
+    networks:
+      dual_stack:
+        ipv4_address: 10.0.99.3
+        ipv6_address: fd00::3
+
+
+  # Third node
+  pve-3:
+    image: ghcr.io/longqt-sea/proxmox-ve
+    container_name: proxmox-pve-3
+    hostname: pve-3
+    restart: unless-stopped
+    privileged: true
+    pull_policy: always
+    cgroup: host
+    shm_size: 1g
+    devices:
+      - /dev/kvm
+      #- /dev/net/tun
+      #- /dev/vhost-net
+    logging: *default-logging
+    ports:
+      - "3130:3128"
+      - "172.17.0.1:2225:22"
+      - "172.17.0.1:8008:8006"                      # Third node container port 8006 maps to host port 8008
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup               # Required for systemd init
+      - /usr/lib/modules:/usr/lib/modules:ro        # Required for loading kernel modules
+      - /sys/kernel/security:/sys/kernel/security   # Optional, needed for LXC
+      - /var/lib/vz/dump:/var/lib/vz/dump           # Shared storage for VM/LXC backups
+      - /var/lib/vz/template/iso:/var/lib/vz/template/iso # Shared storage for ISO files
+    tmpfs:
+      - /run
+      - /run/lock
+    networks:
+      dual_stack:
+        ipv4_address: 10.0.99.4
+        ipv6_address: fd00::4
+
+# Dual-stack network for this cluster
+networks:
+  dual_stack:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 10.0.99.0/24
+          gateway: 10.0.99.99
+        - subnet: fd00::/64
+          gateway: fd00::99
