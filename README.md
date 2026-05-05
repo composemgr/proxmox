@@ -135,12 +135,12 @@ composemgr install proxmox
 
 ### Directory Structure
 
-The project follows a standardized rootfs layout:
+The project follows a standardized volumes layout:
 
 ```
 .
 ├── docker-compose.yaml
-└── rootfs/
+└── volumes/
     ├── config/          # Application configuration files
     ├── data/            # Application data and logs
 ```
@@ -169,8 +169,8 @@ For production deployments, use a reverse proxy (nginx, traefik, caddy) to handl
 
 Data persistence locations:
 
-- `./rootfs/config/` - Application configuration
-- `./rootfs/data/` - Application data and logs
+- `./volumes/config/` - Application configuration
+- `./volumes/data/` - Application data and logs
 
 ## 🔐 Security
 
@@ -230,7 +230,7 @@ docker compose exec [service_name] [command]
 ### Backup
 ```shell
 # Backup volumes
-tar -czf proxmox-backup-$(date +%Y%m%d).tar.gz rootfs/
+tar -czf proxmox-backup-$(date +%Y%m%d).tar.gz volumes/
 ```
 
 ### Restore
