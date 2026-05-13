@@ -12,10 +12,10 @@ x-logging: &default-logging
 services:
   # Optional: Proxmox Datacenter Manager
   pdm:
-    image: ghcr.io/longqt-sea/proxmox-datacenter-manager
+    image: ghcr.io/longqt-sea/proxmox-datacenter-manager:latest
     container_name: proxmox-pdm
-    hostname: pdm
-    restart: unless-stopped
+    hostname: ${BASE_HOST_NAME:-pdm}
+    restart: always
     pull_policy: always
     cgroup: host
     shm_size: 1g
@@ -25,6 +25,8 @@ services:
       - seccomp=unconfined
       - apparmor=unconfined
     logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
     ports:
       - "172.17.0.1:2222:22"
       - "172.17.0.1:64943:8443"
@@ -32,14 +34,14 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup
     networks:
       dual_stack:
-        ipv4_address: 10.0.99.1 
+        ipv4_address: 10.0.99.1
         ipv6_address: fd00::1
 
   # First node
   pve-1:
-    image: ghcr.io/longqt-sea/proxmox-ve
+    image: ghcr.io/longqt-sea/proxmox-ve:latest
     container_name: proxmox-pve-1
-    restart: unless-stopped
+    restart: always
     pull_policy: always
     hostname: pve-1
     privileged: true
@@ -50,16 +52,18 @@ services:
       #- /dev/net/tun
       #- /dev/vhost-net
     logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
     ports:
       - "3128:3128"
       - "172.17.0.1:2223:22"
-      - "172.17.0.1:8006:8006"                      # First node container port 8006 maps to host port 8006
+      - "172.17.0.1:8006:8006"
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup               # Required for systemd init
-      - /usr/lib/modules:/usr/lib/modules:ro        # Required for loading kernel modules
-      - /sys/kernel/security:/sys/kernel/security   # Optional, needed for LXC
-      - /var/lib/vz/dump:/var/lib/vz/dump           # Shared storage for VM/LXC backups
-      - /var/lib/vz/template/iso:/var/lib/vz/template/iso # Shared storage for ISO files
+      - /sys/fs/cgroup:/sys/fs/cgroup
+      - /usr/lib/modules:/usr/lib/modules:ro
+      - /sys/kernel/security:/sys/kernel/security
+      - /var/lib/vz/dump:/var/lib/vz/dump
+      - /var/lib/vz/template/iso:/var/lib/vz/template/iso
     tmpfs:
       - /run
       - /run/lock
@@ -68,13 +72,12 @@ services:
         ipv4_address: 10.0.99.2
         ipv6_address: fd00::2
 
-
   # Second node
   pve-2:
-    image: ghcr.io/longqt-sea/proxmox-ve
+    image: ghcr.io/longqt-sea/proxmox-ve:latest
     container_name: proxmox-pve-2
     hostname: pve-2
-    restart: unless-stopped
+    restart: always
     pull_policy: always
     privileged: true
     cgroup: host
@@ -84,16 +87,18 @@ services:
       #- /dev/net/tun
       #- /dev/vhost-net
     logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
     ports:
       - "3129:3128"
       - "172.17.0.1:2224:22"
-      - "172.17.0.1:8007:8006"                      # Second node container port 8006 maps to host port 8007
+      - "172.17.0.1:8007:8006"
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup               # Required for systemd init
-      - /usr/lib/modules:/usr/lib/modules:ro        # Required for loading kernel modules
-      - /sys/kernel/security:/sys/kernel/security   # Optional, needed for LXC
-      - /var/lib/vz/dump:/var/lib/vz/dump           # Shared storage for VM/LXC backups
-      - /var/lib/vz/template/iso:/var/lib/vz/template/iso # Shared storage for ISO files
+      - /sys/fs/cgroup:/sys/fs/cgroup
+      - /usr/lib/modules:/usr/lib/modules:ro
+      - /sys/kernel/security:/sys/kernel/security
+      - /var/lib/vz/dump:/var/lib/vz/dump
+      - /var/lib/vz/template/iso:/var/lib/vz/template/iso
     tmpfs:
       - /run
       - /run/lock
@@ -102,15 +107,14 @@ services:
         ipv4_address: 10.0.99.3
         ipv6_address: fd00::3
 
-
   # Third node
   pve-3:
-    image: ghcr.io/longqt-sea/proxmox-ve
+    image: ghcr.io/longqt-sea/proxmox-ve:latest
     container_name: proxmox-pve-3
     hostname: pve-3
-    restart: unless-stopped
-    privileged: true
+    restart: always
     pull_policy: always
+    privileged: true
     cgroup: host
     shm_size: 1g
     devices:
@@ -118,16 +122,18 @@ services:
       #- /dev/net/tun
       #- /dev/vhost-net
     logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
     ports:
       - "3130:3128"
       - "172.17.0.1:2225:22"
-      - "172.17.0.1:8008:8006"                      # Third node container port 8006 maps to host port 8008
+      - "172.17.0.1:8008:8006"
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup               # Required for systemd init
-      - /usr/lib/modules:/usr/lib/modules:ro        # Required for loading kernel modules
-      - /sys/kernel/security:/sys/kernel/security   # Optional, needed for LXC
-      - /var/lib/vz/dump:/var/lib/vz/dump           # Shared storage for VM/LXC backups
-      - /var/lib/vz/template/iso:/var/lib/vz/template/iso # Shared storage for ISO files
+      - /sys/fs/cgroup:/sys/fs/cgroup
+      - /usr/lib/modules:/usr/lib/modules:ro
+      - /sys/kernel/security:/sys/kernel/security
+      - /var/lib/vz/dump:/var/lib/vz/dump
+      - /var/lib/vz/template/iso:/var/lib/vz/template/iso
     tmpfs:
       - /run
       - /run/lock
@@ -139,6 +145,7 @@ services:
 # Dual-stack network for this cluster
 networks:
   dual_stack:
+    name: proxmox-dual-stack
     enable_ipv6: true
     ipam:
       config:
