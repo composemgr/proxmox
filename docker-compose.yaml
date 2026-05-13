@@ -1,5 +1,4 @@
-# Proxmox - A full Proxmox VE cluster in a Docker container
-# Access URL: http://172.17.0.1:64943
+# nginx proxy address - http://172.17.0.1:64943
 
 name: proxmox
 
@@ -27,6 +26,8 @@ services:
     logging: *default-logging
     environment:
       TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: proxmox-pdm
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     ports:
       - "172.17.0.1:2222:22"
       - "172.17.0.1:64943:8443"
@@ -36,6 +37,24 @@ services:
       dual_stack:
         ipv4_address: 10.0.99.1
         ipv6_address: fd00::1
+      proxy:
+      cloudflare:
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://proxmox-pdm:8443'
+      - 'cloudflare.hostname=proxmox.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.proxmox-pdm.entrypoints=http'
+      - 'traefik.http.routers.proxmox-pdm-secure.tls=true'
+      - 'traefik.http.routers.proxmox-pdm.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.proxmox-pdm-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.proxmox-pdm.middlewares=proxmox-pdm-https-redirect'
+      - 'traefik.http.routers.proxmox-pdm-secure.entrypoints=https'
+      - 'traefik.http.routers.proxmox-pdm-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.proxmox-pdm-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.proxmox-pdm-secure.service=proxmox-pdm'
+      - 'traefik.http.services.proxmox-pdm.loadbalancer.server.port=8443'
 
   # First node
   pve-1:
@@ -54,6 +73,8 @@ services:
     logging: *default-logging
     environment:
       TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: proxmox-pve-1
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     ports:
       - "3128:3128"
       - "172.17.0.1:2223:22"
@@ -71,6 +92,24 @@ services:
       dual_stack:
         ipv4_address: 10.0.99.2
         ipv6_address: fd00::2
+      proxy:
+      cloudflare:
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://proxmox-pve-1:8006'
+      - 'cloudflare.hostname=proxmox.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.proxmox-pve-1.entrypoints=http'
+      - 'traefik.http.routers.proxmox-pve-1-secure.tls=true'
+      - 'traefik.http.routers.proxmox-pve-1.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.proxmox-pve-1-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.proxmox-pve-1.middlewares=proxmox-pve-1-https-redirect'
+      - 'traefik.http.routers.proxmox-pve-1-secure.entrypoints=https'
+      - 'traefik.http.routers.proxmox-pve-1-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.proxmox-pve-1-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.proxmox-pve-1-secure.service=proxmox-pve-1'
+      - 'traefik.http.services.proxmox-pve-1.loadbalancer.server.port=8006'
 
   # Second node
   pve-2:
@@ -89,6 +128,8 @@ services:
     logging: *default-logging
     environment:
       TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: proxmox-pve-2
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     ports:
       - "3129:3128"
       - "172.17.0.1:2224:22"
@@ -106,6 +147,24 @@ services:
       dual_stack:
         ipv4_address: 10.0.99.3
         ipv6_address: fd00::3
+      proxy:
+      cloudflare:
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://proxmox-pve-2:8006'
+      - 'cloudflare.hostname=proxmox.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.proxmox-pve-2.entrypoints=http'
+      - 'traefik.http.routers.proxmox-pve-2-secure.tls=true'
+      - 'traefik.http.routers.proxmox-pve-2.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.proxmox-pve-2-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.proxmox-pve-2.middlewares=proxmox-pve-2-https-redirect'
+      - 'traefik.http.routers.proxmox-pve-2-secure.entrypoints=https'
+      - 'traefik.http.routers.proxmox-pve-2-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.proxmox-pve-2-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.proxmox-pve-2-secure.service=proxmox-pve-2'
+      - 'traefik.http.services.proxmox-pve-2.loadbalancer.server.port=8006'
 
   # Third node
   pve-3:
@@ -124,6 +183,8 @@ services:
     logging: *default-logging
     environment:
       TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: proxmox-pve-3
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     ports:
       - "3130:3128"
       - "172.17.0.1:2225:22"
@@ -141,6 +202,24 @@ services:
       dual_stack:
         ipv4_address: 10.0.99.4
         ipv6_address: fd00::4
+      proxy:
+      cloudflare:
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://proxmox-pve-3:8006'
+      - 'cloudflare.hostname=proxmox.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.proxmox-pve-3.entrypoints=http'
+      - 'traefik.http.routers.proxmox-pve-3-secure.tls=true'
+      - 'traefik.http.routers.proxmox-pve-3.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.proxmox-pve-3-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.proxmox-pve-3.middlewares=proxmox-pve-3-https-redirect'
+      - 'traefik.http.routers.proxmox-pve-3-secure.entrypoints=https'
+      - 'traefik.http.routers.proxmox-pve-3-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.proxmox-pve-3-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.proxmox-pve-3-secure.service=proxmox-pve-3'
+      - 'traefik.http.services.proxmox-pve-3.loadbalancer.server.port=8006'
 
 # Dual-stack network for this cluster
 networks:
@@ -153,3 +232,7 @@ networks:
           gateway: 10.0.99.99
         - subnet: fd00::/64
           gateway: fd00::99
+  proxy:
+    external: true
+  cloudflare:
+    external: true
